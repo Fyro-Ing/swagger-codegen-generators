@@ -51,6 +51,8 @@ public class JavaVertXServerCodegen extends AbstractJavaCodegen implements BeanV
   public static final String SPEC_LOCATION_OPTION = "specLocation";
 
   public static final String USE_FUTURE_OPTION = "useFuture";
+  public static final String VERTX_VERSION = "vertxVersion";
+  public static final String VERTX_VERSION_5 = "vertxV5";
 
   protected String rootPackage = "io.swagger.server.api";
   protected String apiVerticle;
@@ -62,6 +64,7 @@ public class JavaVertXServerCodegen extends AbstractJavaCodegen implements BeanV
   protected String title = null;
   protected boolean useBeanValidation = false;
   protected boolean notNullJacksonAnnotation = false;
+  protected String vertxVersion = "4.5.15";
 
   /**
    * A Java Vert.X generator. It can be configured with CLI options :
@@ -116,8 +119,12 @@ public class JavaVertXServerCodegen extends AbstractJavaCodegen implements BeanV
     cliOptions.add(specLocation);
 
     CliOption useFutureOption = CliOption.newBoolean(USE_FUTURE_OPTION,
-      "When specified, describe service as future or not. Default as false");
+      "When specified, describe service as future or not. Default as false. Unused with Vert.X V5");
     useFutureOption.setDefault(Boolean.FALSE.toString());
+    cliOptions.add(useFutureOption);
+
+    CliOption vertxVersionOption = CliOption.newString(VERTX_VERSION, "Vert.x version");
+    vertxVersionOption.setDefault(this.vertxVersion);
     cliOptions.add(useFutureOption);
 
     cliOptions.add(CliOption.newBoolean(USE_BEANVALIDATION, "Use BeanValidation API annotations"));
@@ -183,7 +190,6 @@ public class JavaVertXServerCodegen extends AbstractJavaCodegen implements BeanV
       this.useDataObject = (Boolean.valueOf(additionalProperties.get(USE_DATAOBJECT_OPTION).toString()));
     }
 
-
     if (additionalProperties.containsKey(MOUNT_OPERATION_FROM_OPTION)) {
       if (MOUNT_OPERATION_FROM_INTERFACE.equals(additionalProperties.get(MOUNT_OPERATION_FROM_OPTION))) {
         this.mountFromInterface = true;
@@ -208,6 +214,15 @@ public class JavaVertXServerCodegen extends AbstractJavaCodegen implements BeanV
       supportingFiles.add(new SupportingFile("package-info-model.mustache", sourceFolder + File.separator + modelPackage.replace(".", File.separator), "package-info.java"));
       supportingFiles.add(new SupportingFile("json-mappers.mustache", projectFolder + File.separator + "resources/META-INF/vertx", "json-mappers.properties"));
       supportingFiles.add(new SupportingFile("DataObjectMapper.mustache", sourceFolder + File.separator + modelPackage.replace(".", File.separator), "DataObjectMapper.java"));
+    }
+
+    if (additionalProperties.containsKey(VERTX_VERSION)) {
+      this.vertxVersion = additionalProperties.get(VERTX_VERSION).toString();
+    }
+    additionalProperties.put(VERTX_VERSION, this.vertxVersion);
+    if (vertxVersion.startsWith("5")) {
+      additionalProperties.put(VERTX_VERSION_5, true);
+      additionalProperties.put(USE_FUTURE_OPTION, true);
     }
 
     writeOptional(outputFolder, new SupportingFile("pom.mustache", "", "pom.xml"));

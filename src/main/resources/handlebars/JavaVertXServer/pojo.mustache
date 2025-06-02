@@ -4,8 +4,8 @@
 {{#useBeanValidation}}@Valid{{/useBeanValidation}}
 {{>generatedAnnotation}}{{#discriminator}}{{>typeInfoAnnotation}}{{/discriminator}}
 {{#notNullJacksonAnnotation}}@JsonInclude(JsonInclude.Include.NON_NULL){{/notNullJacksonAnnotation}}
-{{#useDataObject}}@DataObject(generateConverter = true, publicConverter = false){{/useDataObject}}
-
+{{#useDataObject}}@DataObject{{^vertxV5}}(generateConverter = true){{/vertxV5}}
+{{#vertxV5}}@JsonGen{{/vertxV5}}{{/useDataObject}}
 public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#serializableModel}}implements Serializable {{#interfaceModels}}, {{classname}}{{^@last}}, {{/@last}}{{#@last}} {{/@last}}{{/interfaceModels}}{{/serializableModel}}{{^serializableModel}}{{#interfaceModels}}{{#@first}}implements {{/@first}}{{classname}}{{^@last}}, {{/@last}}{{#@last}}{{/@last}}{{/interfaceModels}}{{/serializableModel}} {
 {{#serializableModel}}
   private static final long serialVersionUID = 1L;
@@ -35,6 +35,10 @@ public class {{classname}} {{#parent}}extends {{{parent}}}{{/parent}} {{#seriali
 
   {{/vars}}
 {{#useDataObject}}
+  public {{classname}}() {
+    {{#parent}}super();{{/parent}}
+  }
+
   public {{classname}}(JsonObject json) {
     {{#parent}}{{#hasVars}}super(json);{{/hasVars}}{{/parent}}
     {{classname}}Converter.fromJson(json, this);
